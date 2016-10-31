@@ -50,25 +50,34 @@ func switchARecordIPAddr(hostedZoneID string, aRecord string, ipAddr string) err
 		TTL: aws.Int64(300),
 	}
 
+	route53Change := route53.Change{ // Required
+		Action: aws.String("UPSERT"), // Required
+		ResourceRecordSet: rrs,
+	}
+
+	allChanges := []*route53.Change{
+		&route53Change,
+	}
+
+	changeBatch := &route53.ChangeBatch{ // Required
+		Changes: allChanges,
+		Comment: aws.String("ResourceDescription"),
+	}
+
 	params := &route53.ChangeResourceRecordSetsInput{
-		ChangeBatch: &route53.ChangeBatch{ // Required
-			Changes: []*route53.Change{ // Required
-				{ // Required
-					Action: aws.String("UPSERT"), // Required
-					ResourceRecordSet: rrs,
-				},
-			},
-			Comment: aws.String("ResourceDescription"),
-		},
+		ChangeBatch: changeBatch,
 		HostedZoneId: aws.String(hostedZoneID), // Required
 	}
+	
 	resp, err := svc.ChangeResourceRecordSets(params)
 
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
+
 	fmt.Println(resp)
+
 	return nil
 }
 
